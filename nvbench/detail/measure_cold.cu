@@ -26,6 +26,8 @@
 
 #include <nvbench/detail/statistics.cuh>
 
+#include <nvbench/internal/histogram_printer.cuh>
+
 #include <fmt/format.h>
 
 #include <algorithm>
@@ -127,16 +129,21 @@ void measure_cold_base::generate_summaries()
     const auto results = nvbench::detail::compute_percentiles(m_cuda_times,
                                                               percentiles);
 
-    const auto histo_min    = results[1]; // 1st percentile
-    const auto histo_max    = results[5]; // 99th percentile
-    const auto histo_bins   = std::size_t{50};
-    const auto histo_stride = (histo_max - histo_min) /
-                              static_cast<double>(histo_bins);
+    const auto histo_bins = std::size_t{120};
 
-    const auto histo = nvbench::detail::compute_histogram(m_cuda_times,
-                                                          histo_min,
-                                                          histo_stride,
-                                                          histo_bins);
+    auto histo_min    = results[1]; // 1st percentile
+    auto histo_max    = results[5]; // 99th percentile
+    auto histo_stride = (histo_max - histo_min) /
+                        static_cast<nvbench::float64_t>(histo_bins);
+
+    const auto histo = nvbench::detail::fit_histogram(m_cuda_times,
+                                                      histo_min,
+                                                      histo_stride,
+                                                      histo_bins,
+                                                      0.05f);
+
+    histo_max = histo_min + histo_stride * histo_bins;
+
     {
       auto &summ = m_state.add_summary("GPU Time Percentiles (Cold)");
       summ.set_string("hide", "Non-standard format.");
@@ -156,6 +163,13 @@ void measure_cold_base::generate_summaries()
       summ.set_float64("min", histo_min);
       summ.set_float64("stride", histo_stride);
       summ.set_int64("bins", static_cast<nvbench::int64_t>(histo_bins));
+
+      nvbench::internal::histogram_printer histo_print{histo_min,
+                                                       histo_stride,
+                                                       histo};
+      fmt::print(histo_print.render());
+
+#if 0
       assert(histo.size() == histo_bins + 2);
       const auto scale =
         std::reduce(histo.cbegin(), histo.cend(), 0, [](auto a, auto b) {
@@ -170,6 +184,7 @@ void measure_cold_base::generate_summaries()
                    (histo[i] * 50) / scale);
         summ.set_int64(fmt::format("bin {}", i), histo[i]);
       }
+#endif
     }
   }
 
