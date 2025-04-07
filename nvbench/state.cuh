@@ -40,6 +40,11 @@ namespace detail
 {
 struct state_generator;
 struct state_tester;
+
+// Implementation helper for callable.cuh.
+struct state_base
+{};
+
 } // namespace detail
 
 /**
@@ -56,7 +61,7 @@ struct state_tester;
  *   - Summaries store measurement information as key/value pairs.
  *     See nvbench::summary for details.
  */
-struct state
+struct state : detail::state_base
 {
   // move-only
   state(const state &)            = delete;

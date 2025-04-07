@@ -18,9 +18,9 @@
 
 #pragma once
 
-#include <nvbench/benchmark_base.cuh>
-
 #include <nvbench/axes_metadata.cuh>
+#include <nvbench/benchmark_base.cuh>
+#include <nvbench/exec_tag.cuh>
 #include <nvbench/runner.cuh>
 #include <nvbench/type_list.cuh>
 
@@ -50,12 +50,18 @@ namespace nvbench
  * @tparam TypeAxes A `nvbench::type_list` of `nvbench::type_list`s. See the
  * [README](../README.md) for more details.
  */
-template <typename KernelGenerator, typename TypeAxes = nvbench::type_list<>>
+template <typename KernelGenerator,
+          typename ExecTagT = decltype(nvbench::exec_tag::none),
+          typename TypeAxes = nvbench::type_list<>>
 struct benchmark final : public benchmark_base
 {
   using kernel_generator = KernelGenerator;
   using type_axes        = TypeAxes;
   using type_configs     = nvbench::tl::cartesian_product<type_axes>;
+
+  static_assert(nvbench::is_exec_tag_v<ExecTagT>, "ExecTagT must be an nvbench::exec_tag type.");
+
+  static constexpr ExecTagT exec_tag = ExecTagT{};
 
   static constexpr std::size_t num_type_configs = nvbench::tl::size<type_configs>{};
 

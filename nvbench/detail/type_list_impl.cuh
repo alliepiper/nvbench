@@ -1,13 +1,21 @@
 #pragma once
 
+#include <nvbench/type_list.cuh>
+
 #include <cstdint>
 #include <tuple>
 
 namespace nvbench
 {
 
+namespace tl::detail
+{
+struct type_list_base
+{};
+} // namespace tl::detail
+
 template <typename... Ts>
-struct type_list
+struct type_list : nvbench::tl::detail::type_list_base
 {};
 
 template <typename T>

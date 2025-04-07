@@ -48,17 +48,15 @@ enum class exec_flag
 
 NVBENCH_DECLARE_FLAGS(nvbench::detail::exec_flag)
 
-namespace nvbench::exec_tag
+namespace nvbench
 {
-
+namespace exec_tag
+{
 namespace impl
 {
 
 struct tag_base
 {};
-
-template <typename ExecTag>
-constexpr inline bool is_exec_tag_v = std::is_base_of_v<tag_base, ExecTag>;
 
 /// Base class for exec_tag functionality.
 /// This exists so that the `exec_flag`s can be embedded in a type with flag
@@ -115,6 +113,7 @@ constexpr inline measure_mask_t measure_mask;
 
 } // namespace impl
 
+/// Empty exec_tag.
 constexpr inline auto none = nvbench::exec_tag::impl::none;
 
 /// Modifier used when only a portion of the KernelLauncher needs to be timed.
@@ -128,4 +127,10 @@ constexpr inline auto sync = nvbench::exec_tag::impl::no_block | nvbench::exec_t
 /// Modifier used to indicate that batched measurements should be disabled
 constexpr inline auto no_batch = nvbench::exec_tag::impl::cold;
 
-} // namespace nvbench::exec_tag
+} // namespace exec_tag
+
+/// Trait to check if a type is an exec_tag.
+template <typename ExecTag>
+constexpr inline bool is_exec_tag_v = std::is_base_of_v<exec_tag::impl::tag_base, ExecTag>;
+
+} // namespace nvbench

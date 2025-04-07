@@ -26,6 +26,9 @@
 namespace nvbench
 {
 
+template <typename TypeList>
+constexpr inline bool is_type_list_v = std::is_base_of_v<tl::detail::type_list_base, TypeList>;
+
 template <typename... Ts>
 struct type_list;
 

@@ -58,6 +58,13 @@ void no_op_generator(nvbench::state &state)
   // Marking as skipped to signal that this state is run:
   state.skip(fmt::to_string(std::move(params)));
 }
+NVBENCH_CREATE(no_op_generator); // default name
+NVBENCH_CREATE(no_op_generator).set_name("Custom Name");
+NVBENCH_CREATE(no_op_generator)
+  .set_name("No Types")
+  .add_int64_axis("Int", {1, 2, 3})
+  .add_float64_axis("Float", {11.0, 12.0, 13.0})
+  .add_string_axis("String", {"One", "Two", "Three"});
 NVBENCH_BENCH(no_op_generator); // default name
 NVBENCH_BENCH(no_op_generator).set_name("Custom Name");
 NVBENCH_BENCH(no_op_generator)
@@ -85,6 +92,15 @@ void template_no_op_generator(nvbench::state &state,
   // Enum params using non-templated version:
   no_op_generator(state);
 }
+NVBENCH_CREATE(template_no_op_generator, type_axes{})
+  .set_name("All The Axes")
+  .set_type_axes_names({"FloatT", "IntT", "MiscT"})
+  .add_int64_axis("Int", {1, 2, 3})
+  .add_float64_axis("Float", {11.0, 12.0, 13.0})
+  .add_string_axis("String", {"One", "Two", "Three"});
+NVBENCH_CREATE(template_no_op_generator, type_axes{})
+  .set_name("Oops, All Types!")
+  .set_type_axes_names({"FloatT", "IntT", "MiscT"});
 NVBENCH_BENCH_TYPES(template_no_op_generator, type_axes)
   .set_name("All The Axes")
   .set_type_axes_names({"FloatT", "IntT", "MiscT"})

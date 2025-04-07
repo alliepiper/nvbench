@@ -34,22 +34,31 @@ struct state;
   NVBENCH_DEFINE_CALLABLE(function, NVBENCH_UNIQUE_IDENTIFIER(function))
 
 #define NVBENCH_DEFINE_CALLABLE(function, callable_name)                                           \
+  extern void function(nvbench::detail::state_base &);                                             \
+                                                                                                   \
   struct callable_name                                                                             \
   {                                                                                                \
-    void operator()(nvbench::state &state, nvbench::type_list<>) { function(state); }              \
-  }
-
-#define NVBENCH_DEFINE_UNIQUE_CALLABLE_TEMPLATE(function)                                          \
-  NVBENCH_DEFINE_CALLABLE_TEMPLATE(function, NVBENCH_UNIQUE_IDENTIFIER(function))
-
-#define NVBENCH_DEFINE_CALLABLE_TEMPLATE(function, callable_name)                                  \
-  struct callable_name                                                                             \
-  {                                                                                                \
-    template <typename... Ts>                                                                      \
-    void operator()(nvbench::state &state, nvbench::type_list<Ts...>)                              \
+    template <typename TypeConfig>                                                                 \
+    void operator()(nvbench::state &state, TypeConfig)                                             \
     {                                                                                              \
-      function(state, nvbench::type_list<Ts...>{});                                                \
+      static_assert(nvbench::is_type_list_v<TypeConfig>);                                          \
+      callable_name::invoker<TypeConfig>::invoke(state, TypeConfig{});                             \
     }                                                                                              \
+                                                                                                   \
+    template <typename TypeConfig, typename = void>                                                \
+    struct invoker;                                                                                \
+                                                                                                   \
+    template <typename TypeConfig>                                                                 \
+    struct invoker<TypeConfig, std::enable_if_t<nvbench::tl::size<TypeConfig>::value != 0>>        \
+    {                                                                                              \
+      static void invoke(nvbench::state &state, TypeConfig) { function(state, TypeConfig{}); }     \
+    };                                                                                             \
+                                                                                                   \
+    template <typename TypeConfig>                                                                 \
+    struct invoker<TypeConfig, std::enable_if_t<nvbench::tl::size<TypeConfig>::value == 0>>        \
+    {                                                                                              \
+      static void invoke(nvbench::state &state, TypeConfig) { function(state); }                   \
+    };                                                                                             \
   }
 
 #define NVBENCH_UNIQUE_IDENTIFIER(prefix) NVBENCH_UNIQUE_IDENTIFIER_IMPL1(prefix, __LINE__)

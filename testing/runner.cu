@@ -78,8 +78,7 @@ void template_no_op_generator(nvbench::state &state,
   // Enum params using non-templated version:
   no_op_generator(state);
 }
-NVBENCH_DEFINE_CALLABLE_TEMPLATE(template_no_op_generator,
-                                 template_no_op_callable);
+NVBENCH_DEFINE_CALLABLE(template_no_op_generator, template_no_op_callable);
 
 void test_empty()
 {
@@ -162,7 +161,8 @@ Params: Float: 13 Int: 3 String: Three
 
 void test_types()
 {
-  using benchmark_type = nvbench::benchmark<template_no_op_callable, type_axes>;
+  using benchmark_type =
+    nvbench::benchmark<template_no_op_callable, decltype(nvbench::exec_tag::none), type_axes>;
   using runner_type    = nvbench::runner<benchmark_type>;
 
   benchmark_type bench;
@@ -203,7 +203,8 @@ Params: FloatT: F64 IntT: I64 MiscT: void
 
 void test_both()
 {
-  using benchmark_type = nvbench::benchmark<template_no_op_callable, type_axes>;
+  using benchmark_type =
+    nvbench::benchmark<template_no_op_callable, decltype(nvbench::exec_tag::none), type_axes>;
   using runner_type    = nvbench::runner<benchmark_type>;
 
   benchmark_type bench;

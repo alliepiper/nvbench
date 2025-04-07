@@ -38,8 +38,9 @@ using misc      = nvbench::type_list<void, bool>;
 using type_axes = nvbench::type_list<floats, ints, misc>;
 template <typename F, typename I, typename M>
 void template_generator(nvbench::state &, nvbench::type_list<F, I, M>){};
-NVBENCH_DEFINE_CALLABLE_TEMPLATE(template_generator, template_callable);
-using template_bench = nvbench::benchmark<template_callable, type_axes>;
+NVBENCH_DEFINE_CALLABLE(template_generator, template_callable);
+using template_bench =
+  nvbench::benchmark<template_callable, decltype(nvbench::exec_tag::none), type_axes>;
 
 void test_empty()
 {

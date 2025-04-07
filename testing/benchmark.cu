@@ -74,8 +74,7 @@ void template_no_op_generator(nvbench::state &state,
   // Enum params using non-templated version:
   no_op_generator(state);
 }
-NVBENCH_DEFINE_CALLABLE_TEMPLATE(template_no_op_generator,
-                                 template_no_op_callable);
+NVBENCH_DEFINE_CALLABLE(template_no_op_generator, template_no_op_callable);
 
 using int_list = nvbench::type_list<nvbench::int8_t,
                                     nvbench::int16_t,
@@ -86,9 +85,9 @@ using float_list = nvbench::type_list<nvbench::float32_t, nvbench::float64_t>;
 
 using misc_list = nvbench::type_list<bool, void>;
 
-using lots_of_types_bench =
-  nvbench::benchmark<template_no_op_callable,
-                     nvbench::type_list<int_list, float_list, misc_list>>;
+using lots_of_types_bench = nvbench::benchmark<template_no_op_callable,
+                                               decltype(nvbench::exec_tag::none),
+                                               nvbench::type_list<int_list, float_list, misc_list>>;
 
 using no_types_bench = nvbench::benchmark<no_op_callable>;
 

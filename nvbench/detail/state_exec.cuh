@@ -45,7 +45,7 @@ void state::exec(ExecTags tags, KernelLauncher &&kernel_launcher)
 {
   using KL = typename std::remove_reference<KernelLauncher>::type;
   using namespace nvbench::exec_tag::impl;
-  static_assert(is_exec_tag_v<ExecTags>,
+  static_assert(nvbench::is_exec_tag_v<ExecTags>,
                 "`ExecTags` argument must be a member (or combination of "
                 "members) from nvbench::exec_tag.");
 
