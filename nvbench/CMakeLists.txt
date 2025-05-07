@@ -1,6 +1,7 @@
 set(srcs
   axes_metadata.cxx
   axis_base.cxx
+  axis_space_iterator_base.cxx
   iteration_space_base.cxx
   benchmark_base.cxx
   benchmark_manager.cxx
