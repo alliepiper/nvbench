@@ -24,6 +24,7 @@
 // Thrust vectors simplify memory management:
 #include <thrust/device_vector.h>
 
+#include <cstddef>
 #include <random>
 
 //==============================================================================
@@ -132,7 +133,7 @@ struct under_diag final : nvbench::user_axis_space
     return ((info[0].axis_size * (info[1].axis_size + 1)) / 2);
   }
 
-  std::unique_ptr<nvbench::iteration_space_base> do_clone() const
+  std::unique_ptr<nvbench::axis_space_base> do_clone() const
   {
     return std::make_unique<under_diag>(*this);
   }
@@ -141,9 +142,61 @@ struct under_diag final : nvbench::user_axis_space
 NVBENCH_BENCH(copy_sweep_grid_shape)
   .set_name("user_copy_sweep_grid_shape")
   .add_user_iteration_axes(
-    [](auto... args) -> std::unique_ptr<nvbench::iteration_space_base> {
+    [](auto... args) -> std::unique_ptr<nvbench::axis_space_base> {
       return std::make_unique<under_diag>(args...);
     },
+    nvbench::int64_axis("BlockSize", {64, 128, 256, 512, 1024}),
+    nvbench::int64_axis("NumBlocks", {1024, 521, 256, 128, 64}));
+
+struct under_diag_strategy
+{
+  std::size_t x_start{0};
+  std::size_t x_pos{0};
+  std::size_t y_pos{0};
+
+  std::size_t compute_linear_size(const std::vector<std::size_t> &axis_sizes)
+  {
+    if (axis_sizes.size() != 2)
+    {
+      throw std::runtime_error("under_diag_strategy only supports two axes");
+    }
+    if (axis_sizes[0] != axis_sizes[1])
+    {
+      throw std::runtime_error("under_diag_strategy requires both input axes to be the same size");
+    }
+    return ((axis_sizes[0] * (axis_sizes[1] + 1)) / 2);
+  }
+
+  void update_value_indices(std::vector<std::size_t> &axis_value_indices,
+                            const std::vector<std::size_t> &axis_sizes,
+                            const std::size_t linear_idx,
+                            const std::size_t /*linear_size*/)
+  {
+    if (linear_idx == 0)
+    { // Reset:
+      x_pos   = 0;
+      y_pos   = 0;
+      x_start = 0;
+    }
+    else
+    { // Increment:
+      x_pos++;
+      if (x_pos == axis_sizes[0])
+      {
+        x_pos = ++x_start;
+        y_pos = x_start;
+      }
+    }
+
+    // set the value indices
+    axis_value_indices[0] = x_pos;
+    axis_value_indices[1] = y_pos;
+  }
+};
+
+NVBENCH_BENCH(strategy_mockup)
+  .set_name("strategy_mockup")
+  .add_custom_iteration_axes<under_diag_strategy>( //
     nvbench::int64_axis("BlockSize", {64, 128, 256, 512, 1024}),
     nvbench::int64_axis("NumBlocks", {1024, 521, 256, 128, 64}));
 
@@ -192,7 +245,7 @@ struct gauss final : nvbench::user_axis_space
     return info[0].axis_size;
   }
 
-  std::unique_ptr<iteration_space_base> do_clone() const { return std::make_unique<gauss>(*this); }
+  std::unique_ptr<axis_space_base> do_clone() const { return std::make_unique<gauss>(*this); }
 };
 //==============================================================================
 // Dual parameter sweep:
@@ -207,12 +260,12 @@ void dual_float64_axis(nvbench::state &state)
 }
 NVBENCH_BENCH(dual_float64_axis)
   .add_user_iteration_axes(
-    [](auto... args) -> std::unique_ptr<nvbench::iteration_space_base> {
+    [](auto... args) -> std::unique_ptr<nvbench::axis_space_base> {
       return std::make_unique<gauss>(args...);
     },
     nvbench::float64_axis("Duration_A", nvbench::range(0., 1e-4, 5e-5)))
   .add_user_iteration_axes(
-    [](auto... args) -> std::unique_ptr<nvbench::iteration_space_base> {
+    [](auto... args) -> std::unique_ptr<nvbench::axis_space_base> {
       return std::make_unique<gauss>(args...);
     },
     nvbench::float64_axis("Duration_B", nvbench::range(0., 1e-4, 5e-5)));

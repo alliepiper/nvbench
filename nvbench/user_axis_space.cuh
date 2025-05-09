@@ -63,13 +63,13 @@ namespace nvbench
  *   ...
  * };
  */
-struct user_axis_space : iteration_space_base
+struct user_axis_space : axis_space_base
 {
   user_axis_space(std::vector<std::size_t> input_indices);
   ~user_axis_space();
 };
 
 using make_user_space_signature =
-  std::unique_ptr<iteration_space_base>(std::vector<std::size_t> input_indices);
+  std::unique_ptr<axis_space_base>(std::vector<std::size_t> input_indices);
 
 } // namespace nvbench

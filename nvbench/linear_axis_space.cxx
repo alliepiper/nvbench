@@ -24,7 +24,7 @@ namespace nvbench
 {
 
 linear_axis_space::linear_axis_space(std::size_t axis_index)
-    : iteration_space_base({axis_index})
+    : axis_space_base({axis_index})
 {}
 
 linear_axis_space::~linear_axis_space() = default;
@@ -49,7 +49,7 @@ std::size_t linear_axis_space::do_get_active_count(const axis_value_indices &inf
   return info[0].axis_active_size;
 }
 
-std::unique_ptr<iteration_space_base> linear_axis_space::do_clone() const
+std::unique_ptr<axis_space_base> linear_axis_space::do_clone() const
 {
   return std::make_unique<linear_axis_space>(*this);
 }

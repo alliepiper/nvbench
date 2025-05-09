@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <nvbench/detail/axis_space_iterator.cuh>
+#include <nvbench/axis_space_iterator.cuh>
 
 namespace nvbench
 {
@@ -49,23 +49,20 @@ namespace nvbench
  *
  *
  */
-struct iteration_space_base
+struct axis_space_base
 {
   using axes_type          = std::vector<std::unique_ptr<nvbench::axis_base>>;
   using axis_value_indices = std::vector<detail::axis_value_index>;
-
-  using advance_signature = nvbench::detail::axis_space_iterator::advance_signature;
-  using update_signature  = nvbench::detail::axis_space_iterator::update_signature;
 
   /*!
    * Construct a new derived iteration_space
    *
    * @param[input_axis_indices] Index of each associated axis in axes_metadata.
    */
-  iteration_space_base(std::vector<std::size_t> input_axis_indices);
-  virtual ~iteration_space_base();
+  axis_space_base(std::vector<std::size_t> input_axis_indices);
+  virtual ~axis_space_base();
 
-  [[nodiscard]] std::unique_ptr<iteration_space_base> clone() const;
+  [[nodiscard]] std::unique_ptr<axis_space_base> clone() const;
 
   /*!
    * Returns the iterator over the @a axes provided
@@ -93,7 +90,7 @@ struct iteration_space_base
 protected:
   std::vector<std::size_t> m_axis_indices;
 
-  virtual std::unique_ptr<iteration_space_base> do_clone() const                     = 0;
+  virtual std::unique_ptr<axis_space_base> do_clone() const                          = 0;
   virtual detail::axis_space_iterator do_get_iterator(axis_value_indices info) const = 0;
   virtual std::size_t do_get_size(const axis_value_indices &info) const              = 0;
   virtual std::size_t do_get_active_count(const axis_value_indices &info) const      = 0;

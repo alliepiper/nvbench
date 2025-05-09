@@ -35,12 +35,12 @@ namespace nvbench
  * ( {0,0}, {0,1}, {0,2}, ... ).
  *
  */
-struct zip_axis_space final : iteration_space_base
+struct zip_axis_space final : axis_space_base
 {
   zip_axis_space(std::vector<std::size_t> input_axis_indices);
   ~zip_axis_space();
 
-  std::unique_ptr<iteration_space_base> do_clone() const override;
+  std::unique_ptr<axis_space_base> do_clone() const override;
   detail::axis_space_iterator do_get_iterator(axis_value_indices info) const override;
   std::size_t do_get_size(const axis_value_indices &info) const override;
   std::size_t do_get_active_count(const axis_value_indices &info) const override;

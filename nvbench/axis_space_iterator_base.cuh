@@ -16,29 +16,25 @@
  *  limitations under the License.
  */
 
+#include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace nvbench
 {
-
-class axes_metadata;
+struct axes_metadata;
 
 struct axis_space_iterator_base
 {
   using indices_type = std::vector<std::size_t>;
 
   axis_space_iterator_base() = default;
-
   virtual ~axis_space_iterator_base();
 
-  // Which axes this iterator is associated with, specified by their
-  // indices in the axes metadata.
-  [[nodiscard]] const indices_type &get_axis_indices() const { return m_axis_indices; }
-  void set_axis_indices(indices_type axis_indices) { m_axis_indices = std::move(axis_indices); }
+  [[nodiscard]] std::unique_ptr<axis_space_iterator_base> clone() const;
 
-  // Initialize the iteration state based on the current axes metadata, using
-  // the previously specified axis_indices.
-  void initialize(const nvbench::axes_metadata &axes);
+  // Initialize the iteration state based on the current axes metadata and axis_indices.
+  void initialize(const nvbench::axes_metadata &axes, const indices_type &axis_indices);
 
   // Advance the iteration state. Returns true if the iterator "rolled over", eg.
   // was exhausted and has reset to the beginning.
@@ -51,8 +47,17 @@ struct axis_space_iterator_base
   [[nodiscard]] std::size_t get_linear_size() const { return m_linear_size; }
 
 protected:
-  // The indices of the associated axes in the axes metadata.
-  indices_type m_axis_indices{};
+  virtual std::unique_ptr<axis_space_iterator_base> do_clone() const = 0;
+
+  // Compute the linear size of the iteration space based on m_axis_sizes.
+  // Only called once during initialization.
+  virtual void do_compute_linear_size() = 0;
+
+  // Update the value indices based on the current linear_index and/or previous value_indices.
+  // Will be called over the interval [0, m_linear_size) repeatedly. It will be called exactly
+  // once for each linear iteration during each iteration. The value_indices are preserved between
+  // calls.
+  virtual void do_update_value_indices() = 0;
 
   // The indices of the current values in each associated axis.
   indices_type m_axis_value_indices{};
@@ -65,16 +70,6 @@ protected:
 
   // The linear size of the iteration space.
   std::size_t m_linear_size{};
-
-  // Compute the linear size of the iteration space based on m_axis_sizes.
-  virtual std::size_t do_compute_linear_size() const = 0;
-
-  // Update the value indices based on the current linear_index and/or previous value_indices.
-  // Will be called exactly once per iteration.
-  // The linear_index may reset to 0 between calls, but will otherwise always be one more than
-  // the previous call.
-  // The value_indices are preserved between calls.
-  virtual void do_update_value_indices() = 0;
 };
 
 } // namespace nvbench

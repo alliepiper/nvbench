@@ -42,7 +42,7 @@ namespace nvbench
 struct axes_metadata
 {
   using axes_type             = std::vector<std::unique_ptr<nvbench::axis_base>>;
-  using iteration_spaces_type = std::vector<std::unique_ptr<nvbench::iteration_space_base>>;
+  using iteration_spaces_type = std::vector<std::unique_ptr<nvbench::axis_space_base>>;
 
   template <typename... TypeAxes>
   explicit axes_metadata(nvbench::type_list<TypeAxes...>);

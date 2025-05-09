@@ -16,20 +16,20 @@
  *  limitations under the License.
  */
 
-#include "iteration_space_base.cuh"
+#include <nvbench/axis_space_base.cuh>
 
 #include <nvbench/type_axis.cuh>
 
 namespace nvbench
 {
 
-iteration_space_base::iteration_space_base(std::vector<std::size_t> input_axis_indices)
+axis_space_base::axis_space_base(std::vector<std::size_t> input_axis_indices)
     : m_axis_indices(std::move(input_axis_indices))
 {}
 
-iteration_space_base::~iteration_space_base() = default;
+axis_space_base::~axis_space_base() = default;
 
-std::unique_ptr<iteration_space_base> iteration_space_base::clone() const
+std::unique_ptr<axis_space_base> axis_space_base::clone() const
 {
   auto clone = this->do_clone();
   return clone;
@@ -37,11 +37,11 @@ std::unique_ptr<iteration_space_base> iteration_space_base::clone() const
 
 namespace
 {
-nvbench::iteration_space_base::axis_value_indices
-get_axis_value_indices(const nvbench::iteration_space_base::axes_type &axes,
+nvbench::axis_space_base::axis_value_indices
+get_axis_value_indices(const nvbench::axis_space_base::axes_type &axes,
                        const std::vector<std::size_t> &indices)
 {
-  nvbench::iteration_space_base::axis_value_indices info;
+  nvbench::axis_space_base::axis_value_indices info;
   info.reserve(indices.size());
   for (auto &idx : indices)
   {
@@ -51,16 +51,16 @@ get_axis_value_indices(const nvbench::iteration_space_base::axes_type &axes,
 }
 } // namespace
 
-detail::axis_space_iterator iteration_space_base::get_iterator(const axes_type &axes) const
+detail::axis_space_iterator axis_space_base::get_iterator(const axes_type &axes) const
 {
   return this->do_get_iterator(get_axis_value_indices(axes, m_axis_indices));
 }
 
-std::size_t iteration_space_base::get_size(const axes_type &axes) const
+std::size_t axis_space_base::get_size(const axes_type &axes) const
 {
   return this->do_get_size(get_axis_value_indices(axes, m_axis_indices));
 }
-std::size_t iteration_space_base::get_active_count(const axes_type &axes) const
+std::size_t axis_space_base::get_active_count(const axes_type &axes) const
 {
   return this->do_get_active_count(get_axis_value_indices(axes, m_axis_indices));
 }

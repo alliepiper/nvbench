@@ -16,31 +16,34 @@
  *  limitations under the License.
  */
 
-#include <nvbench/axis_space_iterator_base.cuh>
-
 #include <nvbench/axes_metadata.cuh>
+#include <nvbench/axis_space_iterator_base.cuh>
 
 namespace nvbench
 {
 
-axis_space_iterator_base::~axis_space_iterator_base() = default;
+[[nodiscard]] std::unique_ptr<axis_space_iterator_base> axis_space_iterator_base::clone() const
+{
+  return std::unique_ptr<axis_space_iterator_base>(this->do_clone());
+}
 
-void axis_space_iterator_base::initialize(const axes_metadata &axes)
+void axis_space_iterator_base::initialize(const axes_metadata &axes,
+                                          const indices_type &axis_indices)
 {
   m_axis_value_indices.clear();
-  m_axis_value_indices.resize(m_axis_indices.size(), 0);
+  m_axis_value_indices.resize(axis_indices.size(), 0);
 
   m_axis_sizes.clear();
-  m_axis_sizes.reserve(m_axis_indices.size());
-  for (const auto &axis_idx : m_axis_indices)
+  m_axis_sizes.reserve(axis_indices.size());
+  for (const auto &axis_idx : axis_indices)
   {
     const auto &axis = *axes.get_axes()[axis_idx];
     m_axis_sizes.push_back(axis.get_size());
   }
 
   m_linear_index = 0;
-  m_linear_size = this->do_compute_linear_size(m_axis_sizes);
 
+  this->do_compute_linear_size();
   this->do_update_value_indices();
 }
 
@@ -58,4 +61,4 @@ bool axis_space_iterator_base::advance()
   return true; // rolled over
 }
 
-}
+} // namespace nvbench
