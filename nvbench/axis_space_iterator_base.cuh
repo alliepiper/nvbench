@@ -16,7 +16,8 @@
  *  limitations under the License.
  */
 
-#include <cstdint>
+#include <nvbench/detail/axis_value_descriptor.cuh>
+
 #include <memory>
 #include <vector>
 

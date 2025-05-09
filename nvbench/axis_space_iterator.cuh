@@ -23,7 +23,6 @@
 namespace nvbench
 {
 
-// TODO rename this file to match the class name
 template <typename Strategy>
 struct axis_space_iterator final : public axis_space_iterator_base
 {
@@ -35,7 +34,10 @@ private:
     return std::make_unique<axis_space_iterator<strategy_type>>(*this);
   }
 
-  void do_compute_linear_size() override { m_linear_size = m_strategy.compute_linear_size(m_axis_sizes); }
+  void do_compute_linear_size() override
+  {
+    m_linear_size = m_strategy.compute_linear_size(const_cast<const indices_type &>(m_axis_sizes));
+  }
 
   void do_update_value_indices() override
   {
