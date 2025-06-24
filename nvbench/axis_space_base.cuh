@@ -18,10 +18,12 @@
 
 #pragma once
 
-#include <nvbench/axis_space_iterator.cuh>
+#include <nvbench/axis_space_iterator_base.cuh>
+#include <nvbench/detail/axis_value_descriptor.cuh>
 
 namespace nvbench
 {
+struct axes_metadata;
 
 /*!
  * Base class for all axis iteration spaces.
@@ -46,28 +48,32 @@ namespace nvbench
  * * The `nvbench::axes_metadata` can be deep copied, which would invalidate
  * any pointers held by this class. By holding onto the index we remove the need
  * to do any form of fixup on deep copies of `nvbench::axes_metadata`.
- *
- *
  */
 struct axis_space_base
 {
-  using axes_type          = std::vector<std::unique_ptr<nvbench::axis_base>>;
-  using axis_value_indices = std::vector<detail::axis_value_index>;
+  using axis_value_descriptors = std::vector<detail::axis_value_descriptor>;
 
   /*!
    * Construct a new derived iteration_space
    *
    * @param[input_axis_indices] Index of each associated axis in axes_metadata.
    */
-  axis_space_base(std::vector<std::size_t> input_axis_indices);
+  axis_space_base(std::vector<std::size_t> input_axis_indices)
+      : m_axis_indices(std::move(input_axis_indices))
+  {}
+
   virtual ~axis_space_base();
 
-  [[nodiscard]] std::unique_ptr<axis_space_base> clone() const;
+  [[nodiscard]] std::unique_ptr<axis_space_base> clone() const { return this->do_clone(); }
 
   /*!
-   * Returns the iterator over the @a axes provided
+   * Create and return an iterator over the axes in the iteration space.
    */
-  [[nodiscard]] detail::axis_space_iterator get_iterator(const axes_type &axes) const;
+  [[nodiscard]] std::unique_ptr<axis_space_iterator_base>
+  get_iterator(const axes_metadata &axes) const
+  {
+    return this->do_get_iterator(axes);
+  }
 
   /*!
    * Returns the number of active and inactive elements the iterator will have
@@ -76,24 +82,18 @@ struct axis_space_base
    * Note:
    *  Type Axis support inactive elements
    */
-  [[nodiscard]] std::size_t get_size(const axes_type &axes) const;
-
-  /*!
-   * Returns the number of active elements the iterator will have when
-   * executed over @a axes
-   *
-   * Note:
-   *  Type Axis support inactive elements
-   */
-  [[nodiscard]] std::size_t get_active_count(const axes_type &axes) const;
+  [[nodiscard]] std::size_t get_size(const axes_metadata &axes) const
+  {
+    return this->do_get_size(axes);
+  }
 
 protected:
   std::vector<std::size_t> m_axis_indices;
 
-  virtual std::unique_ptr<axis_space_base> do_clone() const                          = 0;
-  virtual detail::axis_space_iterator do_get_iterator(axis_value_indices info) const = 0;
-  virtual std::size_t do_get_size(const axis_value_indices &info) const              = 0;
-  virtual std::size_t do_get_active_count(const axis_value_indices &info) const      = 0;
+  virtual std::unique_ptr<axis_space_base> do_clone() const = 0;
+  virtual std::unique_ptr<axis_space_iterator_base>
+  do_get_iterator(const axes_metadata &axes) const                 = 0;
+  virtual std::size_t do_get_size(const axes_metadata &axes) const = 0;
 };
 
 } // namespace nvbench
